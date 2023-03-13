@@ -58,6 +58,7 @@ if can_print:
     print(new_kb.query(pl.Expr("food_flavor(What, sweet)")))
     print(time() - start)
 
+    # Clearing cache to prevent memoization, just to test computing times with and without
     new_kb.clear_cache()
 
     start = time()
@@ -143,13 +144,24 @@ if can_print:
     print(dvd_kb.query(pl.Expr("film_language(young_language, L)")))
 
 
-print(dvd_kb.db.keys())
-""" 
-with open("dvd_rental.pl", "w") as f:
-    for i in dvd_kb.db.keys():
-        
-        for d in dvd_kb.db[i]["facts"]:
-            f.write(d.to_string() + "." + "\n")
+# --- || SAVING TO PROLOG FILE DEMO || ---
 
-f.close()
- """
+def outupt_kb_to_file(kb):
+    with open("test_prolog_output.pl", "w") as f:
+        for i in kb.db.keys():
+            for d in kb.db[i]["facts"]:
+                f.write(d.to_string() + "." + "\n")
+
+    f.close()
+
+
+# --- || CREATING KB FROM FILE DEMO || ---
+
+can_print = False
+
+outupt_kb_to_file(friends_kb)
+test_kb = pl.KnowledgeBase("test_kb")
+test_kb.from_file("test_prolog_output.pl")
+
+if can_print:
+    print(test_kb.query(pl.Expr("to_have_asthma(Who, P)")))

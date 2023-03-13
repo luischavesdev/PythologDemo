@@ -1,0 +1,14 @@
+stress(X,P):-has_lot_work(X,P2),PisP2*0.2.
+to_smoke(X,Prob):-stress(X,P1),friends(Y,X),influences(Y,X,P2),smokes(Y),ProbisP1*P2.
+to_have_asthma(X,0.4):-smokes(X).
+to_have_asthma(X,Prob):-to_smoke(X,P2),ProbisP2*0.25.
+friends(X,Y):-friend(X,Y).
+friends(X,Y):-friend(Y,X).
+influences(X,Y,0.6):-friends(X,Y).
+friend(daniel,rebecca).
+friend(peter,david).
+friend(peter,rebecca).
+smokes(peter).
+smokes(rebecca).
+has_lot_work(daniel,0.8).
+has_lot_work(david,0.3).
