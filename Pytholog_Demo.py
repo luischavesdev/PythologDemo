@@ -1,6 +1,11 @@
 from pyswip import*
+
+# Demo imports
 import pytholog as pl
 from time import time
+
+import psycopg2
+import pandas as pd
 
 """ 
 prolog = Prolog()
@@ -27,7 +32,7 @@ print(list(prolog.query("father(michael,X), hello(X)")))
 
 # --- || MEMOIZATION DEMO || ---
 
-can_print = True
+can_print = False
 
 new_kb = pl.KnowledgeBase("flavor")
 new_kb([
@@ -98,3 +103,53 @@ if can_print:
     print(friends_kb.query(pl.Expr("smokes(Who)")))
     print(friends_kb.query(pl.Expr("to_smoke(Who, P)")))
     print(friends_kb.query(pl.Expr("to_have_asthma(Who, P)")))
+
+
+# --- || SQL DEMO || ---
+
+can_print = False
+
+# Connecting to sql database
+psql = psycopg2.connect(host = "localhost", database = "dvdrental", user = "postgres", password = "postgres")
+cursor = psql.cursor()
+
+# Extracting info from some of the tables
+def query_defn(table):
+    return f"SELECT * FROM {table};"
+
+actor = pd.read_sql(query_defn("actor"), psql)
+language = pd.read_sql(query_defn("language"), psql)
+film = pd.read_sql(query_defn("film"), psql)
+category = pd.read_sql(query_defn("category"), psql)
+
+actor["Actor"] = (actor["first_name"] + "_" + actor["last_name"]).str.lower()
+language["name"] = language["name"].str.lower()
+film["title"] = film["title"].str.replace(" ", "_").str.lower()
+category["name"] = category["name"].str.lower()
+
+# Setting pytholog knowledge base with extracted data
+dvd_kb = pl.KnowledgeBase("dvd_rental")
+
+for i in range(film.shape[0]):
+    dvd_kb([f"film({film.film_id[i]}, {film.title[i]}, {film.language_id[i]})"])
+
+for i in range(language.shape[0]):
+    dvd_kb([f"language({language.language_id[i]}, {language.name[i]})"])
+
+dvd_kb(["film_language(F, L) :- film(_, F, LID), language(LID, L)"])
+
+# Simple knowledge base query
+if can_print:
+    print(dvd_kb.query(pl.Expr("film_language(young_language, L)")))
+
+
+print(dvd_kb.db.keys())
+""" 
+with open("dvd_rental.pl", "w") as f:
+    for i in dvd_kb.db.keys():
+        
+        for d in dvd_kb.db[i]["facts"]:
+            f.write(d.to_string() + "." + "\n")
+
+f.close()
+ """
