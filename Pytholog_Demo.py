@@ -1,33 +1,7 @@
-from pyswip import*
-
-# Demo imports
 import pytholog as pl
 from time import time
-
 import psycopg2
 import pandas as pd
-
-""" 
-prolog = Prolog()
-prolog.assertz("father(michael,john)")
-prolog.assertz("father(michael,gina)")
-#list(prolog.query("father(michael,X)")) == [{'X': 'john'}, {'X': 'gina'}]
-for soln in prolog.query("father(X,Y)"):
-    print(soln["X"], "is the father of", soln["Y"])
-# michael is the father of john
-# michael is the father of gina
-
-
-
-def hello(t):
-    print("Hello,", t)
-hello.arity = 1
-
-registerForeign(hello)
-print(list(prolog.query("father(michael,X), hello(X)")))
-"""
-
-
 
 
 # --- || MEMOIZATION DEMO || ---
@@ -165,3 +139,51 @@ test_kb.from_file("test_prolog_output.pl")
 
 if can_print:
     print(test_kb.query(pl.Expr("to_have_asthma(Who, P)")))
+
+
+# --- || GRAPH TRAVERSAL DEMO || ---
+
+can_print = False
+
+graph_kb = pl.KnowledgeBase("MSA_graph")
+graph_kb([## routes between adjacent cities
+    "route(seattle, chicago, 1737)",
+    "route(seattle, san_francisco, 678)",
+    "route(san_francisco, riverside, 386)",
+    "route(san_francisco, los_angeles, 348)",
+    "route(los_angeles, riverside, 50)",
+    "route(los_angeles, phoenix, 357)",
+    "route(riverside, phoenix, 307)",
+    "route(riverside, chicago, 1704)",
+    "route(phoenix, dallas, 887)",
+    "route(phoenix, houston, 1015)",
+    "route(dallas, chicago, 805)",
+    "route(dallas, atlanta, 721)",
+    "route(dallas, houston, 225)",
+    "route(houston, atlanta, 702)",
+    "route(houston, miami, 968)",
+    "route(atlanta, chicago, 588)",
+    "route(atlanta, washington, 543)",
+    "route(atlanta, miami, 604)",
+    "route(miami, washington, 923)",
+    "route(chicago, detroit, 238)",
+    "route(detroit, boston, 613)",
+    "route(detroit, washington, 396)",
+    "route(detroit, new_york, 482)",
+    "route(boston, new_york, 190)",
+    "route(new_york, philadelphia, 81)",
+    "route(philadelphia, washington, 123)",
+    
+    "path(X, Y, P) :- route(X, Y, P)",
+    "path(X, Y, P) :- route(X, Z, P2), path(Z, Y, P3), P is P2 + P3",
+    "path(X, Y, P) :- route(Y, Z, P2), path(Z, X, P3), P is P2 + P3"
+    ])
+
+# Cut argument is used to to stop searching when the first path is found, which should be the most optimal one.
+answer, path = graph_kb.query(pl.Expr("path(boston, miami, Weight)"), cut = True, show_path = True) 
+
+if can_print:
+    print(answer)
+
+    # The path given isn't sorted.
+    print([answer for answer in path if str(answer) > "Z"])
