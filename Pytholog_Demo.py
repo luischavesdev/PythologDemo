@@ -180,6 +180,7 @@ graph_kb([## routes between adjacent cities
     ])
 
 # Cut argument is used to to stop searching when the first path is found, which should be the most optimal one.
+# Breadth-First Search algorithm is used.
 answer, path = graph_kb.query(pl.Expr("path(boston, miami, Weight)"), cut = True, show_path = True) 
 
 if can_print:
