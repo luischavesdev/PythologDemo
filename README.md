@@ -1,2 +1,2 @@
-# ST1
- Pytholog demo for the SI2 subject.
+# Pytholog Demo
+ Short demo of some of the main features of Pytholog.
